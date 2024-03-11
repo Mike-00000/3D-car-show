@@ -1,10 +1,19 @@
 import React, { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import "./style.css";
-import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
+import { CubeCamera, Environment, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Ground } from "./ground";
 import { Car } from "./Car";
 import { Rings } from "./Rings";
+import { Boxes } from "./Boxes";
+import { FloatingGrid } from "./FloatingGrid";
+import {
+  EffectComposer,
+  DepthOfField,
+  Bloom,
+  ChromaticAberration,
+} from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
 
 function CarShow() {
   return (
@@ -15,8 +24,18 @@ function CarShow() {
 
       <color args={[0, 0, 0]} attach="background" />
 
-      <Car />
+      <CubeCamera resolution={256} frames={Infinity}>
+        {(texture) => (
+          <>
+            <Environment map={texture} />
+            <Car />
+          </>
+        )}
+      </CubeCamera>
+
       <Rings />
+      <Boxes />
+      <FloatingGrid />
 
       <spotLight
         color={[1, 0.25, 0.7]}
@@ -38,7 +57,22 @@ function CarShow() {
       />
 
       <Ground />
-
+      <EffectComposer>
+        {/* <DepthOfField focusDistance={0.0035} focalLength={0.01} bokehScale={3} height={480} /> */}
+        <Bloom
+          blendFunction={BlendFunction.ADD}
+          intensity={0.3} // The bloom intensity.
+          width={300} // render width
+          height={300} // render height
+          kernelSize={5} // blur kernel size
+          luminanceThreshold={0.15} // luminance threshold. Raise this value to mask out darker elements in the scene.
+          luminanceSmoothing={0.025} // smoothness of the luminance threshold. Range is [0, 1]
+        />
+        <ChromaticAberration
+          blendFunction={BlendFunction.NORMAL} // blend mode
+          offset={[0.0002, 0.0002]} // color offset
+        />
+      </EffectComposer>
     </>
   );
 }
